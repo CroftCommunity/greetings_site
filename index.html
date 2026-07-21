@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#175e54" />
+    <title>greetings</title>
+    <script>
+      // Pre-paint theme resolution (no flash); the app owns theme after load.
+      // Styling arrives in Phase 1b; the strict CSP that admits this inline
+      // script by its sha256 hash is injected by the build in Phase 1b.
+      (function () {
+        try {
+          var m = localStorage.getItem('theme');
+          var dark =
+            m === 'dark' ||
+            (m !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+        } catch (e) {
+          document.documentElement.dataset.theme = 'light';
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="./main-LQHKV6LT.js"></script>
+  </body>
+</html>
