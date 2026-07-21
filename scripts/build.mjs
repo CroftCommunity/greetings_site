@@ -105,6 +105,7 @@ writeFileSync('dist/index.html', html);
 copyFileSync('CNAME', 'dist/CNAME'); // custom domain survives every deploy
 writeFileSync('dist/.nojekyll', ''); // gh-pages branch source: disable Jekyll
 copyFileSync('manifest.webmanifest', 'dist/manifest.webmanifest');
+copyFileSync('client-metadata.json', 'dist/client-metadata.json'); // hosted OAuth client_id target (Phase 2)
 cpSync('assets', 'dist/assets', { recursive: true });
 
 // --- Service worker: version + precache list baked in -----------------------
