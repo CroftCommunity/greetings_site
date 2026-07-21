@@ -3,7 +3,7 @@
 // authenticated Agent. Blob-ref handling follows the confirmed uploadBlob ->
 // embed-response -> createRecord pattern (Phase 0 D4).
 import type { Agent } from '@atproto/api';
-import { GREETING_NSID, type BlobRef } from './atproto-core.js';
+import { GREETING_NSID, getBlobUrl, type BlobRef } from './atproto-core.js';
 
 /** Unauthenticated read of a card record's value from the owning PDS. */
 export async function getRecordPublic(pds: string, did: string, rkey: string): Promise<unknown> {
@@ -16,6 +16,15 @@ export async function getRecordPublic(pds: string, did: string, rkey: string): P
   if (!res.ok) throw new Error(`getRecord returned ${res.status}`);
   const body = (await res.json()) as { value?: unknown };
   return body.value;
+}
+
+/** Fetch a blob's raw bytes (unauthenticated). Used for a sealed cover, whose
+ * bytes are ciphertext and must be decrypted before rendering — so they cannot
+ * go through an `<img src>` like a public cover. */
+export async function getBlobBytes(pds: string, did: string, cid: string): Promise<Uint8Array> {
+  const res = await fetch(getBlobUrl(pds, did, cid));
+  if (!res.ok) throw new Error(`getBlob returned ${res.status}`);
+  return new Uint8Array(await res.arrayBuffer());
 }
 
 /** Upload cover bytes and return the blob-ref to embed verbatim in a record.

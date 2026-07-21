@@ -6,8 +6,13 @@ import {
   pdsEndpointFromDidDoc,
   getBlobUrl,
   readPublicCard,
+  buildSealedCard,
+  buildSealedCardHash,
+  readCardMode,
+  readSealedCard,
 } from '../../src/atproto-core';
 import { parseHash } from '../../src/router';
+import { keyFromHash } from '../../src/crypto';
 
 describe('buildPublicCard', () => {
   const base = { text: 'Happy birthday', createdAt: '2026-07-21T00:00:00.000Z' };
@@ -81,5 +86,49 @@ describe('readPublicCard', () => {
     expect(() => readPublicCard({ mode: 'public' })).toThrow(); // no text
     expect(() => readPublicCard(null)).toThrow();
     expect(() => readPublicCard('nope')).toThrow();
+  });
+});
+
+describe('sealed cards', () => {
+  const cover = { $type: 'blob' as const, ref: { $link: 'bafycid' }, mimeType: 'application/octet-stream', size: 20 };
+
+  it('buildSealedCard stores only iv/ciphertext (no plaintext text/from/to)', () => {
+    const rec = buildSealedCard({ iv: 'IV', ciphertext: 'CT', createdAt: '2026-07-21T00:00:00.000Z' });
+    expect(rec).toEqual({ $type: GREETING_NSID, mode: 'sealed', iv: 'IV', ciphertext: 'CT', createdAt: '2026-07-21T00:00:00.000Z' });
+    expect('text' in rec).toBe(false);
+    expect('from' in rec).toBe(false);
+    expect('to' in rec).toBe(false);
+  });
+
+  it('buildSealedCard includes cover + coverIv only when both are present', () => {
+    expect(buildSealedCard({ iv: 'IV', ciphertext: 'CT', createdAt: 'now', cover }).cover).toBeUndefined(); // no coverIv
+    const withCover = buildSealedCard({ iv: 'IV', ciphertext: 'CT', createdAt: 'now', cover, coverIv: 'CIV' });
+    expect(withCover.cover).toEqual(cover);
+    expect(withCover.coverIv).toBe('CIV');
+  });
+
+  it('buildSealedCardHash puts the key in the fragment; parseHash routes it, keyFromHash extracts it', () => {
+    const hash = buildSealedCardHash('did:plc:abc', '3k', 'THEKEY');
+    expect(hash).toBe('#/c/did:plc:abc/3k#k=THEKEY');
+    expect(parseHash(hash)).toEqual({ kind: 'card', did: 'did:plc:abc', rkey: '3k' }); // key does not affect routing
+    expect(keyFromHash(hash)).toBe('THEKEY');
+  });
+
+  it('readCardMode distinguishes public / sealed / unreadable', () => {
+    expect(readCardMode({ mode: 'public', text: 'x' })).toBe('public');
+    expect(readCardMode({ mode: 'sealed', iv: 'a', ciphertext: 'b' })).toBe('sealed');
+    expect(readCardMode({ mode: 'other' })).toBeNull();
+    expect(readCardMode(null)).toBeNull();
+  });
+
+  it('readSealedCard extracts iv/ciphertext (+ cover/coverIv), throws on public', () => {
+    expect(readSealedCard({ mode: 'sealed', iv: 'IV', ciphertext: 'CT' })).toEqual({
+      iv: 'IV', ciphertext: 'CT', cover: null, coverIv: null,
+    });
+    expect(readSealedCard({ mode: 'sealed', iv: 'IV', ciphertext: 'CT', cover, coverIv: 'CIV' })).toEqual({
+      iv: 'IV', ciphertext: 'CT', cover, coverIv: 'CIV',
+    });
+    expect(() => readSealedCard({ mode: 'public', text: 'x' })).toThrow();
+    expect(() => readSealedCard({ mode: 'sealed' })).toThrow(); // no iv/ciphertext
   });
 });

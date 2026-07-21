@@ -6,8 +6,9 @@
 // authenticated agent this establishes.
 import { parseHash, type Route } from './router';
 import { authModeFor, isOAuthCallback } from './auth-core';
-import { buildPublicCard, buildCardHash } from './atproto-core';
+import { buildPublicCard, buildCardHash, buildSealedCard, buildSealedCardHash } from './atproto-core';
 import { uploadBlob, createCard } from './atproto';
+import { genKey, exportKeyB64url, seal, sealCoverBytes } from './crypto';
 import { bootAuth, signIn, signOut, type AuthState } from './auth';
 import { renderHome } from './views/home';
 import { renderCreate, type CreateAuthView, type CreateHandlers } from './views/create';
@@ -82,6 +83,39 @@ async function boot(): Promise<void> {
       });
       const { rkey } = await createCard(auth.agent, auth.did, record);
       return new URL(buildCardHash(auth.did, rkey), `${location.origin}${location.pathname}`).toString();
+    },
+    onCreateSealed: async ({ text, theme, to, file }) => {
+      if (auth.agent === null || auth.did === null) throw new Error('not signed in');
+      // Encrypt client-side: one fresh key per card; the record stores ciphertext
+      // only; the key rides in the returned link's #k= fragment (never networked).
+      const key = await genKey();
+      const payload = {
+        text,
+        ...(theme && theme !== 'plain' ? { theme } : {}),
+        ...(auth.who ? { from: auth.who } : {}),
+        ...(to ? { to } : {}),
+      };
+      const sealedPayload = await seal(payload, key);
+      let cover;
+      let coverIv;
+      if (file !== null) {
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        const sealedCover = await sealCoverBytes(bytes, key);
+        cover = await uploadBlob(auth.agent, sealedCover.ct, 'application/octet-stream'); // ciphertext bytes
+        coverIv = sealedCover.iv;
+      }
+      const record = buildSealedCard({
+        iv: sealedPayload.iv,
+        ciphertext: sealedPayload.ct,
+        createdAt: new Date().toISOString(),
+        ...(cover && coverIv ? { cover, coverIv } : {}),
+      });
+      const { rkey } = await createCard(auth.agent, auth.did, record);
+      const keyB64 = await exportKeyB64url(key);
+      return new URL(
+        buildSealedCardHash(auth.did, rkey, keyB64),
+        `${location.origin}${location.pathname}`,
+      ).toString();
     },
   };
 

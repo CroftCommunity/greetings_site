@@ -25,6 +25,8 @@ export type CreateHandlers = {
   onSignOut: () => void;
   /** Write a public card; resolves to the shareable URL. */
   onCreatePublic: (input: PublicCardFormInput) => Promise<string>;
+  /** Write a server-blind (sealed) card; resolves to the shareable URL with #k=. */
+  onCreateSealed: (input: PublicCardFormInput) => Promise<string>;
 };
 
 export function renderCreate(app: HTMLElement, view: CreateAuthView, handlers: CreateHandlers): void {
@@ -62,6 +64,11 @@ function renderCardForm(view: CreateAuthView, handlers: CreateHandlers): HTMLEle
   const to = fieldInput('To (recipient name)', 'to', 'e.g. Grandma — they don’t need an account');
   const theme = fieldSelect('Theme', 'theme', THEMES);
   const cover = fieldFile('Cover image (optional)', 'cover');
+  const privacy = fieldSelect('Privacy', 'privacy', ['public', 'server-blind']);
+  const privacyHint = document.createElement('p');
+  privacyHint.className = 'card-form__status';
+  privacyHint.textContent =
+    'Public: anyone with the link can read it. Server-blind: encrypted in your browser — only people with the full link (which carries the key) can read it; your PDS stores only ciphertext.';
 
   const submit = document.createElement('button');
   submit.type = 'submit';
@@ -77,7 +84,7 @@ function renderCardForm(view: CreateAuthView, handlers: CreateHandlers): HTMLEle
   result.className = 'card-form__result';
   result.hidden = true;
 
-  form.append(text.label, to.label, theme.label, cover.label, submit, status, result);
+  form.append(text.label, to.label, theme.label, cover.label, privacy.label, privacyHint, submit, status, result);
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
@@ -87,26 +94,29 @@ function renderCardForm(view: CreateAuthView, handlers: CreateHandlers): HTMLEle
       status.textContent = 'Write a message first.';
       return;
     }
+    const sealed = privacy.select.value === 'server-blind';
     submit.disabled = true;
     submit.textContent = 'Creating…';
     status.hidden = false;
-    status.textContent = 'Writing your card to your PDS…';
+    status.textContent = sealed
+      ? 'Encrypting in your browser and writing ciphertext to your PDS…'
+      : 'Writing your card to your PDS…';
     result.hidden = true;
 
-    handlers
-      .onCreatePublic({
-        text: message,
-        theme: (theme.select.value as Theme) || 'plain',
-        to: to.input.value.trim(),
-        file: cover.input.files?.[0] ?? null,
-      })
+    const input: PublicCardFormInput = {
+      text: message,
+      theme: (theme.select.value as Theme) || 'plain',
+      to: to.input.value.trim(),
+      file: cover.input.files?.[0] ?? null,
+    };
+    (sealed ? handlers.onCreateSealed(input) : handlers.onCreatePublic(input))
       .then((shareUrl) => {
         status.textContent = 'Card created. Share this link:';
         result.replaceChildren(shareRow(shareUrl));
         result.hidden = false;
       })
       .catch((err: unknown) => {
-        console.error('greetings: create public card failed', err);
+        console.error('greetings: create card failed', err);
         status.textContent = 'Could not create the card. Please try again.';
       })
       .finally(() => {
