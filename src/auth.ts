@@ -16,10 +16,12 @@ import clientMetadataJson from '../client-metadata.json';
 const HOSTED_CLIENT_METADATA = clientMetadataJson as OAuthClientMetadataInput;
 const HANDLE_RESOLVER = 'https://bsky.social';
 
-/** What the create view needs to render; carries no SDK types. */
+/** What the create view needs to render. */
 export type AuthState = {
   mode: AuthMode;
   agent: Agent | null;
+  /** The signed-in creator's DID (repo to write to), or null. */
+  did: string | null;
   /** Handle for display, or the DID if the handle could not be resolved. */
   who: string | null;
 };
@@ -55,15 +57,20 @@ export async function bootAuth(): Promise<AuthState> {
   const mode = authModeFor(location.origin, location.hostname);
   try {
     const c = getClient();
-    if (c === null) return { mode, agent: null, who: null };
+    if (c === null) return { mode, agent: null, did: null, who: null };
     const result = await c.init();
-    if (result === undefined) return { mode, agent: null, who: null };
+    if (result === undefined) return { mode, agent: null, did: null, who: null };
     currentSession = result.session;
     const agent = new Agent(result.session);
-    return { mode, agent, who: await resolveWho(agent, result.session.did) };
+    return {
+      mode,
+      agent,
+      did: result.session.did,
+      who: await resolveWho(agent, result.session.did),
+    };
   } catch (err) {
     console.error('greetings: OAuth restore/callback failed', err);
-    return { mode, agent: null, who: null };
+    return { mode, agent: null, did: null, who: null };
   }
 }
 

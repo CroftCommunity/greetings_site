@@ -148,3 +148,116 @@ a {
   font-size: 0.9rem;
   margin: 0;
 }
+
+/* Create form */
+.card-form,
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.card-form {
+  gap: 1rem;
+  max-width: 30rem;
+  margin-bottom: 1rem;
+}
+
+.field__label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.field__input {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--rule);
+  border-radius: 0.4rem;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+  width: 100%;
+}
+
+.field__input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+textarea.field__input {
+  resize: vertical;
+}
+
+.card-form__status {
+  color: var(--subtle);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.share {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.share__url {
+  flex: 1 1 16rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--rule);
+  border-radius: 0.4rem;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+}
+
+/* Rendered card */
+.card {
+  border: 1px solid var(--rule);
+  border-radius: 0.6rem;
+  padding: 1.5rem;
+  background: var(--card, #fff);
+  margin: 0 0 1.5rem;
+}
+
+.card__cover {
+  display: block;
+  max-width: 100%;
+  border-radius: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.card__text {
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  line-height: 1.5;
+  color: var(--ink);
+  white-space: pre-wrap;
+  margin: 0 0 1rem;
+}
+
+.card__from {
+  color: var(--subtle);
+  margin: 0;
+  font-style: italic;
+}
+
+/* Themes: a light wash + accent per named theme (plain = the default canvas). */
+.card--plain {
+  --card: #fffdf9;
+}
+.card--sunrise {
+  --card: #fbebdd;
+  border-color: var(--ruddy);
+}
+.card--meadow {
+  --card: #e6efe4;
+  border-color: var(--moss);
+}
+.card--night {
+  --card: #24292d;
+  border-color: var(--schist);
+}
+.card--night .card__text {
+  color: var(--canvas);
+}

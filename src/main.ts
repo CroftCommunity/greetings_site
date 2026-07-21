@@ -6,6 +6,8 @@
 // authenticated agent this establishes.
 import { parseHash, type Route } from './router';
 import { authModeFor, isOAuthCallback } from './auth-core';
+import { buildPublicCard, buildCardHash } from './atproto-core';
+import { uploadBlob, createCard } from './atproto';
 import { bootAuth, signIn, signOut, type AuthState } from './auth';
 import { renderHome } from './views/home';
 import { renderCreate, type CreateAuthView, type CreateHandlers } from './views/create';
@@ -14,6 +16,7 @@ import { renderCard, renderNotFound } from './views/card';
 let auth: AuthState = {
   mode: authModeFor(location.origin, location.hostname),
   agent: null,
+  did: null,
   who: null,
 };
 
@@ -58,9 +61,27 @@ async function boot(): Promise<void> {
       signOut()
         .catch((err: unknown) => console.error('greetings: sign-out failed', err))
         .finally(() => {
-          auth = { ...auth, agent: null, who: null };
+          auth = { ...auth, agent: null, did: null, who: null };
           rerender();
         });
+    },
+    onCreatePublic: async ({ text, theme, to, file }) => {
+      if (auth.agent === null || auth.did === null) throw new Error('not signed in');
+      let cover;
+      if (file !== null) {
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        cover = await uploadBlob(auth.agent, bytes, file.type === '' ? 'application/octet-stream' : file.type);
+      }
+      const record = buildPublicCard({
+        text,
+        createdAt: new Date().toISOString(),
+        ...(theme && theme !== 'plain' ? { theme } : {}),
+        ...(auth.who ? { from: auth.who } : {}),
+        ...(to ? { to } : {}),
+        ...(cover ? { cover } : {}),
+      });
+      const { rkey } = await createCard(auth.agent, auth.did, record);
+      return new URL(buildCardHash(auth.did, rkey), `${location.origin}${location.pathname}`).toString();
     },
   };
 
