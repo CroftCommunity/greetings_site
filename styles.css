@@ -136,6 +136,13 @@ a {
   outline-offset: 1px;
 }
 
+.signin__hint {
+  color: var(--subtle);
+  font-size: 0.85rem;
+  margin: 0;
+  max-width: 22rem;
+}
+
 .signin__error {
   color: var(--ruddy);
   font-size: 0.9rem;

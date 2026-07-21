@@ -45,7 +45,7 @@ export function renderCreate(app: HTMLElement, view: CreateAuthView, handlers: C
 
   // Signed out: the OAuth sign-in form.
   const intro = document.createElement('p');
-  intro.textContent = 'Sign in with your Bluesky / atproto handle to make a card.';
+  intro.textContent = 'Sign in with your Bluesky handle to make a card.';
 
   const form = document.createElement('form');
   form.className = 'signin';
@@ -53,14 +53,21 @@ export function renderCreate(app: HTMLElement, view: CreateAuthView, handlers: C
 
   const label = document.createElement('label');
   label.className = 'signin__label';
-  label.textContent = 'Handle';
+  label.textContent = 'Bluesky handle';
   const input = document.createElement('input');
   input.type = 'text';
   input.name = 'handle';
   input.className = 'signin__input';
   input.placeholder = 'you.bsky.social';
   input.autocomplete = 'username';
+  input.autocapitalize = 'none';
+  input.spellcheck = false;
   label.append(input);
+
+  const hint = document.createElement('p');
+  hint.className = 'signin__hint';
+  hint.textContent =
+    'Your handle, not your email — e.g. you.bsky.social. You enter your email and password on Bluesky’s screen next.';
 
   const submit = document.createElement('button');
   submit.type = 'submit';
@@ -86,7 +93,7 @@ export function renderCreate(app: HTMLElement, view: CreateAuthView, handlers: C
     handlers.onSignIn(value);
   });
 
-  form.append(label, submit, error);
+  form.append(label, hint, submit, error);
   app.append(intro, form, homeLink());
 }
 
