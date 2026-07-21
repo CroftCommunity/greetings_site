@@ -1,0 +1,18 @@
+{
+  "name": "greetings",
+  "short_name": "greetings",
+  "description": "1:1 greeting cards on the AT Protocol — link-delivered, public or server-blind.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "theme_color": "#175e54",
+  "background_color": "#f4efe6",
+  "icons": [
+    {
+      "src": "./assets/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

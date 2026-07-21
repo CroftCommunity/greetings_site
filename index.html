@@ -7,8 +7,8 @@
     <title>greetings</title>
     <script>
       // Pre-paint theme resolution (no flash); the app owns theme after load.
-      // Styling arrives in Phase 1b; the strict CSP that admits this inline
-      // script by its sha256 hash is injected by the build in Phase 1b.
+      // The strict CSP injected by the build admits this inline script by its
+      // exact sha256 hash (computed from this content), so it can never drift.
       (function () {
         try {
           var m = localStorage.getItem('theme');
@@ -21,6 +21,8 @@
         }
       })();
     </script>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <div id="app"></div>

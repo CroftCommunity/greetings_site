@@ -12,7 +12,7 @@
     "test:e2e": "playwright test",
     "test:live": "LIVE=1 playwright test",
     "lint": "eslint .",
-    "test": "npm run lint && npm run typecheck && npm run test:unit && npm run build"
+    "test": "npm run lint && npm run typecheck && npm run test:unit && npm run build && npm run test:e2e"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",

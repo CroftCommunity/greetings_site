@@ -1,8 +1,7 @@
-# Hermetic CI: lint + typecheck + unit + build (the aggregate `npm test`). No
-# credentials, no live-PDS calls — the @live tier (real-PDS suites, arriving with
-# Phase 3) runs LOCALLY as each phase's gate, NOT here. Browser e2e (playwright)
-# is wired into `npm test` in Phase 1b, once the routed shell gives it something
-# to exercise; Phase 1a is build + unit only.
+# Hermetic CI: lint + typecheck + unit + build + e2e (the aggregate `npm test`).
+# No credentials, no live-PDS calls — the @live tier (real-PDS suites, arriving
+# with Phase 3) runs LOCALLY as each phase's gate, NOT here. Browser e2e
+# (playwright) exercises the built dist/ served by `npm run serve`.
 name: ci
 
 on:
@@ -22,6 +21,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npx playwright install --with-deps chromium
       - run: npm test
 
   # Publish the built SPA to the gh-pages branch root, which GitHub Pages serves
