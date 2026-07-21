@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+.env.*
+playwright-report/
+test-results/
+
+# Python tooling scratch
+__pycache__/
+*.pyc

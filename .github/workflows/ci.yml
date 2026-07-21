@@ -1,0 +1,53 @@
+# Hermetic CI: lint + typecheck + unit + build (the aggregate `npm test`). No
+# credentials, no live-PDS calls — the @live tier (real-PDS suites, arriving with
+# Phase 3) runs LOCALLY as each phase's gate, NOT here. Browser e2e (playwright)
+# is wired into `npm test` in Phase 1b, once the routed shell gives it something
+# to exercise; Phase 1a is build + unit only.
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+  # Publish the built SPA to the gh-pages branch root, which GitHub Pages serves
+  # at the custom domain (CNAME=greetings.croft.ing, copied into dist by the
+  # build). Per-PR previews (preview.yml) live in gh-pages:/pr-preview/pr-N/, and
+  # a repo can have only one Pages source — flip it to "Deploy from a branch →
+  # gh-pages / root" once (D3 one-time setup). The push is plain git
+  # (scripts/pages-deploy.sh) — no third-party deploy action runs with write access.
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # push the built site to the gh-pages branch
+    # Serialize every writer of gh-pages (this job + the preview workflow) so
+    # concurrent git pushes to that branch can't race.
+    concurrency:
+      group: gh-pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      # Publish dist/ to the gh-pages root, preserving pr-preview/.
+      - run: bash scripts/pages-deploy.sh root dist "deploy ${{ github.sha }} to Pages"

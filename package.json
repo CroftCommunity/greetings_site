@@ -1,0 +1,35 @@
+{
+  "name": "greetings",
+  "version": "0.0.0",
+  "private": true,
+  "description": "1:1 greeting cards on the AT Protocol — link-delivered, public or server-blind. No backend.",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.tests.json",
+    "serve": "esbuild --servedir=dist --serve=127.0.0.1:4173",
+    "test:unit": "vitest run tests/unit --passWithNoTests",
+    "test:e2e": "playwright test",
+    "test:live": "LIVE=1 playwright test",
+    "lint": "eslint .",
+    "test": "npm run lint && npm run typecheck && npm run test:unit && npm run build"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "@types/node": "^26.1.0",
+    "esbuild": "^0.28.1",
+    "eslint": "^10.6.0",
+    "fake-indexeddb": "^6.2.5",
+    "happy-dom": "^20.10.6",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.63.0",
+    "vitest": "^4.1.10"
+  },
+  "dependencies": {
+    "@atproto/api": "^0.20.26",
+    "@atproto/oauth-client-browser": "^0.4.6",
+    "@atproto/oauth-types": "^0.7.4",
+    "@ipld/dag-cbor": "^10.0.1",
+    "multiformats": "^14.0.4"
+  }
+}
