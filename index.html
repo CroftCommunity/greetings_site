@@ -2,13 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-GBoQosyiKH5VTM/2wWQnMpaQ1RPDvi5CzFdiawvfpsg='; style-src 'self'; img-src 'self' data: blob: https:; font-src 'self'; connect-src 'self' https://bsky.social https://public.api.bsky.app https://plc.directory https:; manifest-src 'self'; worker-src 'self'; base-uri 'none'; object-src 'none'; form-action 'self'" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#175e54" />
     <title>greetings</title>
     <script>
       // Pre-paint theme resolution (no flash); the app owns theme after load.
-      // Styling arrives in Phase 1b; the strict CSP that admits this inline
-      // script by its sha256 hash is injected by the build in Phase 1b.
+      // The strict CSP injected by the build admits this inline script by its
+      // exact sha256 hash (computed from this content), so it can never drift.
       (function () {
         try {
           var m = localStorage.getItem('theme');
@@ -21,9 +22,11 @@
         }
       })();
     </script>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="stylesheet" href="./styles-aac29f76.css" integrity="sha384-L7Y5yW+fc4RYRSx9RRE4Y0i6RD+dFS428m4oNuMjNJyZzOXTAXWjSph1exTli4tM" crossorigin="anonymous" />
   </head>
   <body>
     <div id="app"></div>
-    <script type="module" src="./main-LQHKV6LT.js"></script>
+    <script type="module" src="./main-KJEDE6KJ.js" integrity="sha384-JHpujYOU5h67wxb7lFsI1tZqmuy2cfqPSIE2SP4nUxlox/Gedc5W7T86d6odbW9G" crossorigin="anonymous"></script>
   </body>
 </html>
