@@ -1,8 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 // Mobile-first, tap-first: nothing may overflow horizontally on a phone.
-// Workspace standard — canonical in croft-pwa/docs/MOBILE-FIRST.md, index at
-// CroftC/.claude/MOBILE-FIRST.md.
+// Workspace standard — canonical in croft-pwa/docs/MOBILE-FIRST.md.
 //
 // Widths: 320 = small Android / older iPhone (the one that actually breaks),
 // 360 = common Android, 390 = modern iPhone. Testing only 390 finds almost nothing.
@@ -41,6 +40,10 @@ for (const width of WIDTHS) {
 
 // Touch targets: >=44x44 CSS px (WCAG 2.5.5, the workspace floor). Asserted on the
 // PADDED hit area — for an icon-only control the fix is padding, not a bigger glyph.
+//
+// WCAG 2.5.5's INLINE EXCEPTION is implemented: a target "in a sentence or block of
+// text" is exempt, since padding it to 44px breaks the flow it lives in. Standalone
+// controls (buttons, nav links that are their container's sole content) are NOT.
 test('interactive controls clear the 44px tap floor on a phone', async ({ page }) => {
   await page.route('**/*', (route) => {
     const host = new URL(route.request().url()).hostname;
@@ -53,10 +56,13 @@ test('interactive controls clear the 44px tap floor on a phone', async ({ page }
 
   const undersized = await page.evaluate(() => {
     const sel = 'a[href], button, input:not([type=hidden]), select, textarea, [role=button]';
+    const inlineInText = (el: Element): boolean =>
+      el.tagName === 'A' &&
+      (el.parentElement?.textContent ?? '').trim().length > (el.textContent ?? '').trim().length;
     return Array.from(document.querySelectorAll(sel))
       .filter((el) => {
         const r = el.getBoundingClientRect();
-        return r.width > 0 && r.height > 0 && r.height < 44;
+        return r.width > 0 && r.height > 0 && r.height < 44 && !inlineInText(el);
       })
       .map((el) => {
         const r = el.getBoundingClientRect();
