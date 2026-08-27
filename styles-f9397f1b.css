@@ -24,6 +24,15 @@
   --rule: var(--granite);
   --accent: var(--ruddy);
   --link: var(--moss);
+  /* Text ON a filled accent surface. It CANNOT be one value across both themes:
+     white clears AA on light --ruddy (4.57:1) but fails on dark's lifted accent
+     (3.20:1), where ink clears instead (5.22:1). The old `.button { color:
+     var(--canvas) }` gave 3.52:1 on the primary CTA — a real serious violation on
+     the site's main action, found the moment the axe gate landed (2026-08-26).
+     Ratios are MEASURED, per CroftC/.claude/ACCESSIBILITY.md; 4.57 is a thin
+     margin, so the gate is what keeps a future palette tweak from silently
+     dropping under 4.5. */
+  --on-accent: #ffffff; /* 4.57:1 on --ruddy #b75c34 */
 }
 
 :root[data-theme='dark'] {
@@ -33,6 +42,7 @@
   --rule: #4a5257;
   --accent: #d1794f; /* ruddy, lifted for contrast on schist */
   --link: #7fae87; /* moss, lifted */
+  --on-accent: var(--ink); /* 5.22:1 on the lifted accent; white would be 3.20:1 */
 }
 
 * {
@@ -84,7 +94,7 @@ a {
   border: 1px solid transparent;
   border-radius: 0.4rem;
   background: var(--accent);
-  color: var(--canvas);
+  color: var(--on-accent);
   font: inherit;
   font-weight: 600;
   text-decoration: none;
