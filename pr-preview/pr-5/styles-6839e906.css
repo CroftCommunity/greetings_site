@@ -1,0 +1,342 @@
+/* greetings — Croft design palette (Phase 2), aligned with crofting_site: an
+   earthy, tectonic system. Serif display (Lora, Georgia fallback), sans body
+   (Inter, system fallback); ruddy is the primary action, moss the link/active,
+   granite the subtle text, on an oatmeal canvas. Light/dark via the pre-paint
+   [data-theme] attribute. Kept lean; richer card theming arrives with the cards.
+   (Self-hosting the Lora/Inter woff2 files is a later polish; the fallbacks keep
+   the structure croft-consistent meanwhile.) */
+
+:root {
+  --schist: #2f3539; /* deep schist: structure, dark blocks */
+  --granite: #a2a9ab; /* light granite: rules, subtle text */
+  --ruddy: #b75c34; /* ruddy orange: primary action, heading accents */
+  --moss: #3d6546; /* dark moss: links, growth, active states */
+  --ink: #1c1e20; /* iron ore black: primary text */
+  --canvas: #e9e1d6; /* oatmeal canvas: page background */
+
+  --serif: 'Lora', Georgia, 'Times New Roman', serif;
+  --sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --measure: 42rem;
+
+  --bg: var(--canvas);
+  --fg: var(--ink);
+  --subtle: #6b6155;
+  --rule: var(--granite);
+  --accent: var(--ruddy);
+  --link: var(--moss);
+  /* Text ON a filled accent surface. It CANNOT be one value across both themes:
+     white clears AA on light --ruddy (4.57:1) but fails on dark's lifted accent
+     (3.20:1), where ink clears instead (5.22:1). The old `.button { color:
+     var(--canvas) }` gave 3.52:1 on the primary CTA — a real serious violation on
+     the site's main action, found the moment the axe gate landed (2026-08-26).
+     Ratios are MEASURED, per CroftC/.claude/ACCESSIBILITY.md; 4.57 is a thin
+     margin, so the gate is what keeps a future palette tweak from silently
+     dropping under 4.5. */
+  --on-accent: #ffffff; /* 4.57:1 on --ruddy #b75c34 */
+}
+
+:root[data-theme='dark'] {
+  --bg: var(--schist);
+  --fg: var(--canvas);
+  --subtle: var(--granite);
+  --rule: #4a5257;
+  --accent: #d1794f; /* ruddy, lifted for contrast on schist */
+  --link: #7fae87; /* moss, lifted */
+  --on-accent: var(--ink); /* 5.22:1 on the lifted accent; white would be 3.20:1 */
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: clamp(2.5rem, 8vw, 4.5rem) 1.25rem;
+}
+
+h1 {
+  font-family: var(--serif);
+  font-weight: 600;
+  color: var(--accent);
+  font-size: clamp(2rem, 6vw, 2.6rem);
+  line-height: 1.1;
+  margin: 0 0 0.75rem;
+}
+
+p {
+  color: var(--subtle);
+  margin: 0 0 1.25rem;
+  max-width: 34rem;
+}
+
+a {
+  color: var(--link);
+}
+
+.button {
+  display: inline-block;
+  padding: 0.6rem 1.15rem;
+  border: 1px solid transparent;
+  border-radius: 0.4rem;
+  background: var(--accent);
+  color: var(--on-accent);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button:hover {
+  filter: brightness(1.06);
+}
+
+.button--ghost {
+  background: transparent;
+  color: var(--link);
+  border-color: var(--rule);
+  margin-left: 0.5rem;
+}
+
+/* Sign-in form */
+.signin {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: flex-start;
+  max-width: 22rem;
+}
+
+.signin__label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
+  color: var(--fg);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.signin__input {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--rule);
+  border-radius: 0.4rem;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+}
+
+.signin__input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.signin__hint {
+  color: var(--subtle);
+  font-size: 0.85rem;
+  margin: 0;
+  max-width: 22rem;
+}
+
+.signin__error {
+  color: var(--ruddy);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Create form */
+.card-form,
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.card-form {
+  gap: 1rem;
+  max-width: 30rem;
+  margin-bottom: 1rem;
+}
+
+.field__label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.field__input {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--rule);
+  border-radius: 0.4rem;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+  width: 100%;
+}
+
+.field__input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+textarea.field__input {
+  resize: vertical;
+}
+
+.card-form__status {
+  color: var(--subtle);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.share {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.share__url {
+  flex: 1 1 16rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--rule);
+  border-radius: 0.4rem;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+}
+
+/* Rendered card */
+.card {
+  border: 1px solid var(--rule);
+  border-radius: 0.6rem;
+  padding: 1.5rem;
+  background: var(--card, #fff);
+  margin: 0 0 1.5rem;
+}
+
+.card__cover {
+  display: block;
+  max-width: 100%;
+  border-radius: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.card__text {
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  line-height: 1.5;
+  color: var(--ink);
+  white-space: pre-wrap;
+  margin: 0 0 1rem;
+}
+
+.card__from {
+  color: var(--subtle);
+  margin: 0;
+  font-style: italic;
+}
+
+/* Themes: a light wash + accent per named theme (plain = the default canvas). */
+.card--plain {
+  --card: #fffdf9;
+}
+.card--sunrise {
+  --card: #fbebdd;
+  border-color: var(--ruddy);
+}
+.card--meadow {
+  --card: #e6efe4;
+  border-color: var(--moss);
+}
+.card--night {
+  --card: #24292d;
+  border-color: var(--schist);
+}
+.card--night .card__text {
+  color: var(--canvas);
+}
+
+/* --- Sign-in: two panels split by posture (croft-pwa/docs/DESIGN.md § Flows › Sign in) --- */
+.signin h2 {
+  margin: 0 0 0.25rem;
+}
+.signin-gloss {
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  cursor: help;
+}
+.signin-list {
+  display: flex;
+  flex-direction: column;
+}
+.signin-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 0;
+}
+.signin-row + .signin-row {
+  border-top: 1px solid var(--rule);
+}
+.signin-provider {
+  font-weight: 600;
+}
+.signin-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: none;
+}
+/* Rows need a tighter button, but the 44px floor stays on every control. */
+.button--sm {
+  padding: 0.5rem 0.75rem;
+  min-height: 44px;
+  font-size: 0.9rem;
+}
+.signin-invite {
+  min-width: 6.5rem;
+  text-align: center;
+  font-style: italic;
+  color: var(--subtle);
+  font-size: 0.85rem;
+}
+.signin-more {
+  min-height: 44px;
+  text-align: center;
+}
+.signin-other .signin-list {
+  margin-bottom: 0.75rem;
+}
+.signin-handle-row {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+}
+.signin-handle-row input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+}
+
+/* `hidden` is a UA rule at element specificity, and `.button` sets `display`, so a
+   hidden button stayed on screen — forage shipped that way for one build. */
+[hidden] {
+  display: none !important;
+}
