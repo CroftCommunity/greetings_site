@@ -271,3 +271,79 @@ textarea.field__input {
 .card--night .card__text {
   color: var(--canvas);
 }
+
+/* --- Sign-in: two panels split by posture (croft-pwa/docs/DESIGN.md § Flows › Sign in) --- */
+.signin h2 {
+  margin: 0 0 0.25rem;
+}
+.signin-gloss {
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  cursor: help;
+}
+.signin-list {
+  display: flex;
+  flex-direction: column;
+}
+.signin-row {
+  display: flex;
+  /* The actions may drop under the label. CI's Linux Chromium renders the fallback
+     sans wider than the local run did, and "Bluesky · Create account · Sign in"
+     overflowed 320px by 36px on a row that could not wrap (2026-08-30). */
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.4rem 0.75rem;
+  padding: 0.4rem 0;
+}
+.signin-row + .signin-row {
+  border-top: 1px solid var(--rule);
+}
+.signin-provider {
+  font-weight: 600;
+}
+.signin-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+}
+.signin-actions .button {
+  white-space: nowrap;
+}
+/* Rows need a tighter button, but the 44px floor stays on every control. */
+.button--sm {
+  padding: 0.5rem 0.75rem;
+  min-height: 44px;
+  font-size: 0.9rem;
+}
+.signin-invite {
+  min-width: 6.5rem;
+  text-align: center;
+  font-style: italic;
+  color: var(--subtle);
+  font-size: 0.85rem;
+}
+.signin-more {
+  min-height: 44px;
+  text-align: center;
+}
+.signin-other .signin-list {
+  margin-bottom: 0.75rem;
+}
+.signin-handle-row {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+}
+.signin-handle-row input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+}
+
+/* `hidden` is a UA rule at element specificity, and `.button` sets `display`, so a
+   hidden button stayed on screen — forage shipped that way for one build. */
+[hidden] {
+  display: none !important;
+}
