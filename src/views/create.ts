@@ -3,6 +3,7 @@
 // writes the record to the creator's PDS via the onCreatePublic handler and
 // shows the share link. Sealed (server-blind) cards arrive in Phase 4.
 import type { AuthMode } from '../auth-core';
+import { ATMO_GLOSS, featuredProviders, otherProviders, canCreateAccount, type Provider } from '../signin/providers';
 
 export const THEMES = ['plain', 'sunrise', 'meadow', 'night'] as const;
 export type Theme = (typeof THEMES)[number];
@@ -21,7 +22,8 @@ export type PublicCardFormInput = {
 };
 
 export type CreateHandlers = {
-  onSignIn: (handle: string) => void;
+  /** `target` is a provider entryway (https origin) or a handle; options are forwarded verbatim. */
+  onSignIn: (target: string, options?: { readonly prompt?: 'create' }) => void;
   onSignOut: () => void;
   /** Write a public card; resolves to the shareable URL. */
   onCreatePublic: (input: PublicCardFormInput) => Promise<string>;
@@ -129,47 +131,77 @@ function renderCardForm(view: CreateAuthView, handlers: CreateHandlers): HTMLEle
   return wrap;
 }
 
+// The sign-in step, as the workspace pattern (croft-pwa/docs/DESIGN.md § Flows ›
+// Sign in, § Copy). INLINE, not a sheet: the signed-out create view IS the
+// choose-a-provider step — there is nothing behind it to return to — so the two
+// panels render as the page. The sheet is the recorded exception to "pages, not
+// modals" for a step that interrupts something else; this one interrupts nothing.
+function el<K extends keyof HTMLElementTagNameMap>(
+  tag: K,
+  attrs: Readonly<Record<string, string | boolean>> = {},
+  ...kids: readonly (Node | string)[]
+): HTMLElementTagNameMap[K] {
+  const node = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v === false) continue;
+    if (k === 'hidden') node.hidden = true;
+    else node.setAttribute(k, v === true ? '' : v);
+  }
+  node.append(...kids);
+  return node;
+}
+
+// One row shape for both panels. Open offers Create; invite-only shows the WORDS
+// in the create slot, so the column stays aligned and the italic explains the
+// button that is missing (an invite-only provider still advertises create — it
+// would land on a screen that then demands a code). Posture decides, so a
+// provider that changes posture moves panels and controls in one registry edit.
+function providerRow(p: Provider, handlers: CreateHandlers): HTMLElement {
+  const actions = el('div', { class: 'signin-actions' });
+  if (canCreateAccount(p)) {
+    const create = el('button', { type: 'button', class: 'button button--sm', 'data-provider-create': '' }, 'Create account');
+    create.addEventListener('click', () => handlers.onSignIn(p.entryway, { prompt: 'create' }));
+    actions.append(create);
+  } else {
+    actions.append(el('span', { class: 'signin-invite' }, 'invite only'));
+  }
+  const go = el('button', { type: 'button', class: 'button button--ghost button--sm', 'data-provider-signin': '' }, 'Sign in');
+  go.addEventListener('click', () => handlers.onSignIn(p.entryway));
+  actions.append(go);
+  return el('div', { class: 'signin-row', 'data-provider-row': p.id }, el('span', { class: 'signin-provider' }, p.label), actions);
+}
+
 function renderSignIn(handlers: CreateHandlers): Node[] {
-  const intro = document.createElement('p');
-  intro.textContent = 'Sign in with your Bluesky handle to make a card.';
+  const wrap = el('section', { class: 'signin', 'data-signin': '', 'aria-labelledby': 'signin-title' });
 
-  const form = document.createElement('form');
-  form.className = 'signin';
-  form.setAttribute('novalidate', '');
+  // "atmo" carries a native <abbr title> gloss — hover on a desktop, read by
+  // assistive tech — but touch cannot hover, so the sentence below says the same
+  // thing in plain sight and the tooltip is a bonus, not the only copy.
+  const title = el('h2', { id: 'signin-title' }, 'Choose your ', el('abbr', { class: 'signin-gloss', title: ATMO_GLOSS }, 'atmo'), ' provider');
+  const intro = el('p', { class: 'signin__hint' },
+    `To make a card you sign in with an account from an atmo provider — ${ATMO_GLOSS.charAt(0).toLowerCase()}${ATMO_GLOSS.slice(1)}. Bluesky is one of many, and each sets its own rules. Your cards are written to your own account.`);
 
-  const label = document.createElement('label');
-  label.className = 'signin__label';
-  label.textContent = 'Bluesky handle';
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.name = 'handle';
-  input.className = 'signin__input';
-  input.placeholder = 'you.bsky.social';
-  input.autocomplete = 'username';
-  input.autocapitalize = 'none';
-  input.spellcheck = false;
-  label.append(input);
+  // Front page: the providers a newcomer can JOIN from here.
+  const list = el('div', { class: 'signin-list' }, ...featuredProviders().map((p) => providerRow(p, handlers)));
 
-  const hint = document.createElement('p');
-  hint.className = 'signin__hint';
-  hint.textContent =
-    'Your handle, not your email — e.g. you.bsky.social. You enter your email and password on Bluesky’s screen next.';
-
-  const submit = document.createElement('button');
-  submit.type = 'submit';
-  submit.className = 'button';
-  submit.textContent = 'Sign in';
-
-  const error = document.createElement('p');
-  error.className = 'signin__error';
-  error.setAttribute('role', 'alert');
-  error.hidden = true;
-
+  // Everything not on the short list reaches the same seam: invite-only
+  // providers first, then a handle on any atproto host at all. The list is an
+  // editorial convenience, not a boundary.
+  const input = el('input', {
+    type: 'text', name: 'handle', id: 'signin-handle', class: 'signin__input', placeholder: 'you.example.com',
+    autocomplete: 'username', autocapitalize: 'none', spellcheck: 'false',
+  });
+  const error = el('p', { class: 'signin__error', role: 'alert', hidden: true });
+  const submit = el('button', { type: 'submit', class: 'button button--sm', 'data-provider-handle-go': '' }, 'Continue');
+  const form = el('form', { class: 'signin-other-form', novalidate: '' },
+    el('label', { for: 'signin-handle', class: 'signin__hint' }, 'Your handle on any atmo provider'),
+    el('div', { class: 'signin-handle-row' }, input, submit),
+    error);
   form.addEventListener('submit', (event) => {
     event.preventDefault();
-    const value = input.value.trim();
+    const value = input.value.trim().replace(/^@+/, '');
     if (value === '') {
-      error.textContent = 'Enter your handle to continue.';
+      error.textContent = 'Enter your handle to continue — for example you.example.com.';
       error.hidden = false;
       return;
     }
@@ -178,9 +210,17 @@ function renderSignIn(handlers: CreateHandlers): Node[] {
     submit.textContent = 'Redirecting…';
     handlers.onSignIn(value);
   });
+  const panel = el('div', { class: 'signin-other', hidden: true },
+    el('div', { class: 'signin-list' }, ...otherProviders().map((p) => providerRow(p, handlers))), form);
+  const other = el('button', { type: 'button', class: 'button button--ghost signin-more', 'data-provider-other': '' }, 'Another provider');
+  other.addEventListener('click', () => {
+    other.hidden = true;
+    panel.hidden = false;
+    input.focus();
+  });
 
-  form.append(label, hint, submit, error);
-  return [intro, form, homeLink()];
+  wrap.append(title, intro, list, other, panel);
+  return [wrap, homeLink()];
 }
 
 // --- small DOM builders ---

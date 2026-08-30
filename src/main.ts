@@ -9,7 +9,7 @@ import { authModeFor, isOAuthCallback } from './auth-core';
 import { buildPublicCard, buildCardHash, buildSealedCard, buildSealedCardHash } from './atproto-core';
 import { uploadBlob, createCard } from './atproto';
 import { genKey, exportKeyB64url, seal, sealCoverBytes } from './crypto';
-import { bootAuth, signIn, signOut, type AuthState } from './auth';
+import { bootAuth, signIn, signOut, type AuthState, type SignInOptions } from './auth';
 import { renderHome } from './views/home';
 import { renderCreate, type CreateAuthView, type CreateHandlers } from './views/create';
 import { renderCard, renderNotFound } from './views/card';
@@ -51,9 +51,9 @@ async function boot(): Promise<void> {
   };
 
   const handlers: CreateHandlers = {
-    onSignIn: (handle) => {
+    onSignIn: (target: string, options?: SignInOptions) => {
       // signIn redirects away on success; it resolves here only on failure/abort.
-      signIn(handle).catch((err: unknown) => {
+      signIn(target, options).catch((err: unknown) => {
         console.error('greetings: sign-in failed to start', err);
         rerender(); // reset the form (re-enable the button)
       });
