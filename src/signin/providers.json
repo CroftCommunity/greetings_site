@@ -1,0 +1,9 @@
+{
+  "_why": "The provider registry DATA, one source for the sign-in view. Facts and wrong-first-guesses are recorded in providers.ts; postures are re-probed by tests/e2e/signin-providers.live.spec.ts (@live). This repo's CSP already admits https: on connect-src, so no build step reads this.",
+  "providers": [
+    { "id": "bsky", "label": "Bluesky", "entryway": "https://bsky.social", "signups": "open" },
+    { "id": "blacksky", "label": "Blacksky", "entryway": "https://blacksky.app", "signups": "open" },
+    { "id": "eurosky", "label": "EuroSky", "entryway": "https://eurosky.social", "signups": "open" },
+    { "id": "northsky", "label": "Northsky", "entryway": "https://northsky.social", "signups": "invite" }
+  ]
+}

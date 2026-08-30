@@ -7,6 +7,11 @@ here before it lands. Started 2026-08-29; earlier history is in `git log`.
 
 ## 2026-08
 
+- 2026-08-29 Making a card starts with **Choose your atmo provider**: Bluesky, Blacksky and
+  EuroSky with Create account + Sign in, Northsky (invite only) and a field for a handle on
+  any provider behind **Another provider**. Create account opens the provider's registration
+  wizard, not its sign-in screen. The workspace sign-in pattern
+  (`croft-pwa/docs/DESIGN.md` § Flows › Sign in).
 - 2026-08-26 Accessibility and mobile-fit gates, and the serious contrast defect they found
   on their first run — fixed, and `@axe-core/playwright` pinned to the canonical 4.12.1 in
   the lockfile so the scan grades the same DOM everywhere.

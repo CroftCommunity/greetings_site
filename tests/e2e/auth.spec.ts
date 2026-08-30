@@ -1,23 +1,17 @@
 import { test, expect } from '@playwright/test';
 
 // Phase 2 wiring: on loopback (the e2e origin), sign-in is offered, so the
-// signed-out create view shows the OAuth sign-in form. The interactive OAuth
+// signed-out create view shows the sign-in step (the provider panels —
+// tests/e2e/signin.spec.ts owns their behaviour). The interactive OAuth
 // round-trip (redirect + consent) is verified manually in a browser — not
-// automated here — so these assert the form is reachable and validates locally,
-// without leaving the app.
+// automated here — so these assert the surface is reachable without leaving
+// the app.
 
-test('the signed-out create view shows the sign-in form', async ({ page }) => {
+test('the signed-out create view shows the sign-in step', async ({ page }) => {
   await page.goto('/#/create');
   await expect(page.locator('#app')).toHaveAttribute('data-view', 'create');
-  await expect(page.locator('input[name="handle"]')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Sign in' })).toBeVisible();
-});
-
-test('an empty sign-in submit shows a validation error and does not redirect', async ({ page }) => {
-  await page.goto('/#/create');
-  await page.getByRole('button', { name: 'Sign in' }).click();
-  await expect(page.getByRole('alert')).toBeVisible();
-  await expect(page).toHaveURL(/#\/create$/);
+  await expect(page.locator('[data-signin]')).toBeVisible();
+  await expect(page.locator('[data-provider-row="bsky"] [data-provider-signin]')).toBeVisible();
 });
 
 test('the hosted OAuth client-metadata.json is served and well-formed', async ({ page }) => {

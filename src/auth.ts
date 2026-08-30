@@ -84,11 +84,34 @@ async function resolveWho(agent: Agent, did: string): Promise<string> {
   }
 }
 
-/** Begin the interactive sign-in redirect (resolves only on failure/abort). */
-export async function signIn(handle: string): Promise<void> {
+/** Options for a sign-in start (croft-pwa/docs/DESIGN.md § Flows › Sign in). */
+export type SignInOptions = {
+  /** `create` lands the person in the provider's registration wizard, not its sign-in screen. */
+  readonly prompt?: 'create';
+};
+
+// The hermetic e2e replaces the seam on window before boot: the real signIn
+// redirects away, and a test that leaves the app can prove nothing about the
+// intent it carried. Checked at call time so the hook can never be baked in.
+type SignInHook = (target: string, options?: SignInOptions) => Promise<void>;
+function testHook(): SignInHook | null {
+  const hook = (window as unknown as { __greetingsSignIn?: unknown }).__greetingsSignIn;
+  return typeof hook === 'function' ? (hook as SignInHook) : null;
+}
+
+/**
+ * Begin the interactive sign-in redirect (resolves only on failure/abort).
+ * `target` is a handle (identity first) or a provider ENTRYWAY such as
+ * `https://bsky.social` (server first — the official client accepts either;
+ * forage drives the same call). Options are forwarded verbatim: an options-less
+ * call must not invent a prompt.
+ */
+export async function signIn(target: string, options?: SignInOptions): Promise<void> {
+  const hook = testHook();
+  if (hook !== null) return hook(target, options);
   const c = getClient();
   if (c === null) throw new Error('sign-in is not available on this origin');
-  await c.signIn(handle);
+  await (options === undefined ? c.signIn(target) : c.signIn(target, options));
 }
 
 /** Revoke the restored session. No-op when signed out. */
