@@ -10,6 +10,12 @@
 Started 2026-08-29 with the first gap the workspace design standard recorded against
 this repo.
 
+## Open
+
+- [ ] **`security / deps` is red: 1 blocking (in the npm tree — vite, vitest, happy-dom, zod, … are the flagged packages).** Triaged in the workspace-wide
+  advisory pass, croft-stack first: the handoff prompt is croft-stack `TODO.md` § Open,
+  "Advisory triage, workspace-wide" (filed 2026-10-27).
+
 ## Design standard gaps (croft-pwa/docs/DESIGN.md)
 
 - [x] ~~**Sign-in copy: the noun is "atmo provider", not Bluesky.**~~ DONE 2026-08-29 (signin-pattern): `src/views/create.ts`

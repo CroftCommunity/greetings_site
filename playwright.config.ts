@@ -1,7 +1,8 @@
 import { defineConfig } from '@playwright/test';
 
-// Default run = hermetic tier only: @live tests (real PDS, credentials from
-// .env) are excluded here and run via `npm run test:live` as phase gates.
+// Default run = hermetic tier only: @live tests (network: the registered atmo
+// providers still exist and speak OAuth; no credentials) are excluded here and
+// run via `npm run test:live`.
 export default defineConfig({
   testDir: 'tests/e2e',
   // Cap workers: the suite stresses ONE dev server, and each test's service

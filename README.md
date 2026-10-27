@@ -34,11 +34,13 @@ npm install
 npm run build        # esbuild -> dist/ (content-hashed bundle, CSP, SRI, service worker)
 npm run serve        # serve dist/ at http://127.0.0.1:4173
 npm test             # lint + typecheck + unit (vitest) + build + e2e (playwright)
-npm run test:live    # LIVE=1 playwright — real-PDS suites (needs a bsky app password via env)
+npm run test:live    # LIVE=1 playwright — checks the registered atmo providers still exist and speak OAuth (network, no credentials)
 ```
 
-Unit tests (vitest) cover the pure modules (router, and — as they land — crypto,
-link codec, record builder). Browser wiring is covered by playwright e2e.
+Unit tests (vitest, `tests/unit/`) cover the pure modules: router, crypto (base64url,
+AES-256-GCM seal/open), atproto-core (public card record, card link hash), auth-core,
+the sign-in providers registry, and a sealed-card create → link → read round-trip.
+Browser wiring is covered by playwright e2e.
 
 ## Deploy
 
